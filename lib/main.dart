@@ -1,8 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/screens/home_screen.dart';
 import 'package:flutter_application_2/screens/perfil_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/perfil_provider.dart';
+void main() {
+  runApp(
+ 
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => PerfilProvider()),
+      
+      ],
+      child: const MyApp(),
+    ),
+  );
+}
 
-void main() => runApp(const MyApp());
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

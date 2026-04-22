@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../providers/perfil_provider.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -13,37 +15,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
   bool _isLoading = false;
   bool _isEditing = false;
 
-  Future<Map<String, dynamic>>? _futureProfilData;
 
-  Future<Map<String, dynamic>> fetchProfil(String id) async {
-    try{
-    final url = Uri.parse('http://10.0.2.2:3001/profiles/$id');
-    final response = await http.get(url);
-    final data = jsonDecode(response.body);
-    return data;}
-    catch(e){
-      throw Exception("Error al cargar el perfil: $e");
-    }
-    
-  }
-
-
-
-  Future<void> updateProfile(String id, Map<String, String> profile) async {
-
-    try{
-      final url = Uri.parse('http://10.0.2.2:3001/profiles/$id');
-      await http.put(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(profile),
-    );
-    }
-    catch(e){
-      throw Exception("Error al actualizar el perfil: $e");
-    }
-  
-  }
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -53,19 +25,21 @@ class _PerfilScreenState extends State<PerfilScreen> {
   @override
   void initState() {
     super.initState();
-    _futureProfilData = fetchProfil("1");
+    Future.microtask(() {
+      context.read<PerfilProvider>().fetchProfil("1");
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _futureProfilData,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+    final provider = context.watch<PerfilProvider>();
+    
+        if (provider.isLoading) {
           return Center(child: CircularProgressIndicator());
         }
-        final profile = snapshot.data ?? {};
-        if (!_isLoading) {
+
+        final profile = provider.profile;
+        if (!_isLoading && profile.isNotEmpty) {
           _nameController.text = profile['nombre'] ?? '';
           _emailController.text = profile['correo'] ?? '';
           _edadController.text = profile['edad'] ?? '';
@@ -74,9 +48,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
           _isLoading = true;
         }
         return buildProfileUi(profile);
-      },
-    );
-  }
+      }
+   
+  
     Widget buildProfileUi(Map<String, dynamic> profile) {
       return
   
@@ -161,7 +135,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                     onPressed: () async {
                       if (_isEditing) {
                     
-                        await updateProfile("1", {
+                        await context.read<PerfilProvider>().updateProfile("1", {
                           "name": _nameController.text,
                           "email": _emailController.text,
                           "edad": _edadController.text,
@@ -170,7 +144,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
                       
                         setState(() {
-                          _futureProfilData = fetchProfil("1");
+                          _isLoading = false;
                         });
                       }
 
