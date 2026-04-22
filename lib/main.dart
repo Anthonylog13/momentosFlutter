@@ -3,7 +3,10 @@ import 'package:flutter_application_2/screens/home_screen.dart';
 import 'package:flutter_application_2/screens/perfil_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/perfil_provider.dart';
-void main() {
+import 'services/notifications_services.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationsService().init();
   runApp(
  
     MultiProvider(

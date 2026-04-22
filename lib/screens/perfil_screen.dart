@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import '../providers/perfil_provider.dart';
+import '../services/notifications_services.dart';
 
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
@@ -152,6 +153,16 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       setState(() {
                         _isEditing = !_isEditing;
                       });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amberAccent,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(_isEditing ? "Guardar" : "Editar"),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await NotificationsService.showNotification();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amberAccent,

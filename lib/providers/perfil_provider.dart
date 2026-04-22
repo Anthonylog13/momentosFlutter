@@ -13,7 +13,7 @@ Future<void> fetchProfil(String id) async {
 
 
     try{
-    final url = Uri.parse('http://10.0.2.2:3001/profiles/$id');
+    final url = Uri.parse('http://localhost:3001/profiles/$id');
     final response = await http.get(url);
     profile = jsonDecode(response.body);
     } catch(e){
@@ -29,7 +29,7 @@ Future<void> fetchProfil(String id) async {
   Future<void> updateProfile(String id, Map<String, String> profile) async {
 
     try{
-      final url = Uri.parse('http://10.0.2.2:3001/profiles/$id');
+      final url = Uri.parse('http://localhost:3001/profiles/$id');
       await http.put(
       url,
       headers: {'Content-Type': 'application/json'},

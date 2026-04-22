@@ -26,13 +26,13 @@ void initState() {
 
 
   Future<List<dynamic>> fetchMomentos() async {
-    final url = Uri.parse('http://10.0.2.2:3001/moments');
+    final url = Uri.parse('http://localhost:3001/moments');
     final response = await http.get(url);
     final data = jsonDecode(response.body);
     return data["momentos"];
   }
   Future<void> createMoment(Map<String, String> moment) async {
-    final url = Uri.parse('http://10.0.2.2:3001/moments');
+    final url = Uri.parse('http://localhost:3001/moments');
     await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -41,7 +41,7 @@ void initState() {
   }
 
   Future<void> updateMoment(String id, Map<String, String> moment) async {
-    final url = Uri.parse('http://10.0.2.2:3001/moments/$id');
+    final url = Uri.parse('http://localhost:3001/moments/$id');
     await http.put  (
       url,
       headers: {'Content-Type': 'application/json'},
@@ -50,7 +50,7 @@ void initState() {
   }
 
   Future<void> deleteMoment(String id) async {
-    final url = Uri.parse('http://10.0.2.2:3001/moments/$id');
+    final url = Uri.parse('http://localhost:3001/moments/$id');
     await http.delete(
       url,
     );
