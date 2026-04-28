@@ -11,19 +11,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-with AutomaticKeepAliveClientMixin 
-{
+    with AutomaticKeepAliveClientMixin {
+  Map<int, int> likes = {};
 
- Future<List<dynamic>> ? _futureMoments;
+  Future<List<dynamic>>? _futureMoments;
 
-
-@override
-void initState() {
+  @override
+  void initState() {
     super.initState();
     _futureMoments = fetchMomentos();
-
   }
-
 
   Future<List<dynamic>> fetchMomentos() async {
     final url = Uri.parse('http://localhost:3001/moments');
@@ -31,6 +28,7 @@ void initState() {
     final data = jsonDecode(response.body);
     return data["momentos"];
   }
+
   Future<void> createMoment(Map<String, String> moment) async {
     final url = Uri.parse('http://localhost:3001/moments');
     await http.post(
@@ -42,7 +40,7 @@ void initState() {
 
   Future<void> updateMoment(String id, Map<String, String> moment) async {
     final url = Uri.parse('http://localhost:3001/moments/$id');
-    await http.put  (
+    await http.put(
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(moment),
@@ -51,15 +49,8 @@ void initState() {
 
   Future<void> deleteMoment(String id) async {
     final url = Uri.parse('http://localhost:3001/moments/$id');
-    await http.delete(
-      url,
-    );
+    await http.delete(url);
   }
-
-
-
-
-  
 
   List<Map<String, String>> momentos = [];
   @override
@@ -68,25 +59,55 @@ void initState() {
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      body: FutureBuilder<List<dynamic>>(future: _futureMoments, builder: (context, snapshot) {
-        if(snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        }
- 
-        final data = snapshot.data ?? [];
- 
-        return ListView.builder(itemCount: data.length, itemBuilder: (context, index) {
- 
-          final momento = data[index];
- 
-            return MomentsCard(
-              context,
-              momento,
-              index,
-            );
-          },
-        );
-      }),
+      body: FutureBuilder<List<dynamic>>(
+        future: _futureMoments,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+
+          final data = snapshot.data ?? [];
+
+          return ListView.builder(
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              final momento = data[index];
+
+              return Dismissible(
+                key: ValueKey(momento["id"]),
+                direction: DismissDirection.endToStart,
+                onDismissed: (direction) async {
+                  await deleteMoment(momento["id"].toString());
+                  setState(() {
+                    _futureMoments = fetchMomentos();
+                  });
+                },
+                background: Container(
+                  color: const Color.fromARGB(255, 226, 225, 225),
+                  alignment: Alignment.centerRight,
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Icon(Icons.delete, color: Colors.white),
+                ),
+                child: TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: Duration(milliseconds: 400),
+                  curve: Curves.easeInBack,
+                  builder: (context, value, child) {
+                    return Transform.translate(
+                      offset: Offset(0, (1 - value) * 20),
+                      child: Opacity(
+                        opacity: value.clamp(0.0, 1.0),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: MomentsCard(context, momento, index),
+                ),
+              );
+            },
+          );
+        },
+      ),
 
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color.fromARGB(255, 117, 117, 117),
@@ -111,11 +132,13 @@ void initState() {
 
         color: Colors.white,
 
-        child: MomentsForm(initialData: {
-          "title": momento["titulo"],
-          "descripcion": momento["descripcion"],
-          "imagen": momento["imagen"],
-        }),
+        child: MomentsForm(
+          initialData: {
+            "title": momento["titulo"],
+            "descripcion": momento["descripcion"],
+            "imagen": momento["imagen"],
+          },
+        ),
       ),
     );
 
@@ -124,13 +147,8 @@ void initState() {
       setState(() {
         _futureMoments = fetchMomentos();
       });
-      
     }
-
-    
   }
-
-  
 
   Future<void> _showBottom(BuildContext context) async {
     final result = await showModalBottomSheet(
@@ -152,33 +170,43 @@ void initState() {
       setState(() {
         _futureMoments = fetchMomentos();
       });
-      
     }
   }
-
-
-  
 
   Widget MomentsCard(
     BuildContext context,
     Map<String, dynamic> momento,
     int index,
   ) {
-    String titulo = momento["titulo"] ;
-    String descripcion = momento["descripcion"] ; 
+    String titulo = momento["titulo"];
+    String descripcion = momento["descripcion"];
     String imagen = momento["imagen"];
+    int likesCount = likes[index] ?? 0;
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
+      onTap: () {
+        Navigator.push(context, 
+        
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) =>  MomentsDetail(
+            descripcion: descripcion, titulo: titulo, imagen: imagen,),
 
-        MaterialPageRoute(
-          builder: (context) => MomentsDetail(
-            descripcion: descripcion,
-            titulo: titulo,
-            imagen: imagen,
-          ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child){
+              const begin = Offset(1.0, 0.0);
+
+              const end = Offset.zero;
+
+              final tween = Tween(begin: begin, end: end);
+
+              final offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+                );
+            } ,
         ),
-      ),
+        );
+      },
       child: Padding(
         padding: const EdgeInsets.all(16),
 
@@ -249,6 +277,36 @@ void initState() {
                         });
                       },
                       icon: Icon(Icons.delete, size: 20, color: Colors.red),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          likes[index] = (likes[index] ?? 0) + 1;
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          AnimatedSwitcher(
+                            duration: Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) {
+                              return ScaleTransition(
+                                scale: animation,
+                                child: child,
+                              );
+                            },
+                            child: Icon(
+                              Icons.favorite,
+                              key: ValueKey<int>(likesCount),
+                              color: likesCount > 0 ? Colors.red : Colors.grey,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            likesCount.toString(),
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

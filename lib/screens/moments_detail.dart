@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class MomentsDetail extends StatelessWidget {
+class MomentsDetail extends StatefulWidget {
   final String descripcion;
   final String titulo;
   final String imagen;
@@ -11,6 +11,14 @@ class MomentsDetail extends StatelessWidget {
     required this.titulo, 
     required this.imagen
   });
+
+  @override
+  State<MomentsDetail> createState() => _MomentsDetailState();
+}
+
+class _MomentsDetailState extends State<MomentsDetail> {
+  bool isExpanded = false;
+  final Duration duration = const Duration(milliseconds: 300);
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +46,7 @@ class MomentsDetail extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    titulo, 
+                    widget.titulo, 
                     style: const TextStyle(
                       fontSize: 28, 
                       fontWeight: FontWeight.bold,
@@ -57,31 +65,43 @@ class MomentsDetail extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(
-              width: double.infinity,
-              height: 300,
-              child: Image.network(
-                imagen, 
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.broken_image, size: 50, color: Colors.grey),
-                        SizedBox(height: 10),
-                        Text("No se pudo cargar la imagen", style: TextStyle(color: Colors.grey)),
-                      ],
-                    ),
-                  );
-                },
-              ),
+            GestureDetector(
+              onTap:() {
+                setState(() {
+                  isExpanded = !isExpanded;
+
+                });
+              },
+              child:  AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                height: isExpanded ? 400 : 200,
+                width: isExpanded ? MediaQuery.of(context).size.width : 200,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    widget.imagen, 
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                            SizedBox(height: 10),
+                            Text("No se pudo cargar la imagen", style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                ),
             ),
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: Text(
-                descripcion, 
+                widget.descripcion, 
                 style: const TextStyle(
                   fontSize: 16, 
                   height: 1.5,
